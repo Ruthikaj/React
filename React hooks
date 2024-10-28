@@ -1,0 +1,364 @@
+1. useState: To manage component state (e.g., current file, list of PDFs).
+2. useEffect: To fetch and display PDF list when the page loads or on updates.
+3. useReducer: To handle more complex state logic (e.g., uploading status, success/error messages).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ allows functional components to manage state and side effects without the need for class components. 
+
+1. useState - Real-Time Voting System
+
+Example: Create a real-time voting or like/dislike counter for videos, similar to YouTube’s like/dislike feature.
+
+    What it Does: useState manages component-specific state, making it ideal for counters.
+    Implementation:
+        Store the current vote count in a state variable.
+        Update the count with each click on the "Like" or "Dislike" button.
+
+Code:
+
+javascript
+
+import React, { useState } from 'react';
+
+function VoteCounter() {
+  const [likes, setLikes] = useState(0);
+  const [dislikes, setDislikes] = useState(0);
+
+  return (
+    <div>
+      <button onClick={() => setLikes(likes + 1)}>👍 {likes}</button>
+      <button onClick={() => setDislikes(dislikes + 1)}>👎 {dislikes}</button>
+    </div>
+  );
+}
+
+2. useEffect - Video Data Fetching and Subscriptions
+
+Example: Build a video fetching component that loads data when a user navigates to a new video page, similar to how YouTube fetches video details and comments when a video is selected.
+
+    What it Does: useEffect performs side effects like data fetching. This can also handle cleanup on video changes (e.g., clearing old comments).
+    Implementation:
+        Fetch video details and comments using an API when the video page loads.
+        Cleanup any subscriptions when the video changes.
+
+Code:
+
+javascript
+
+import React, { useEffect, useState } from 'react';
+
+function VideoDetail({ videoId }) {
+  const [videoData, setVideoData] = useState(null);
+
+  useEffect(() => {
+    // Fetch video details from API
+    fetch(`https://api.example.com/videos/${videoId}`)
+      .then(response => response.json())
+      .then(data => setVideoData(data));
+
+    // Optional cleanup if videoId changes
+    return () => console.log(`Cleaning up video ${videoId}`);
+  }, [videoId]);
+
+  return (
+    <div>
+      {videoData ? <h2>{videoData.title}</h2> : <p>Loading...</p>}
+    </div>
+  );
+}
+
+3. useContext - User Authentication and Theme Context
+
+Example: Implement a user authentication context that stores and provides the logged-in user’s data to all components, as YouTube does with user profiles, subscriptions, and watch history.
+
+    What it Does: useContext shares data across components without passing props through each layer.
+    Implementation:
+        Create a UserContext that stores user information.
+        Access this context in any component to customize content (e.g., show personalized recommendations or a "Subscribe" button).
+
+Code:
+
+javascript
+
+import React, { createContext, useContext, useState } from 'react';
+
+const UserContext = createContext();
+
+function UserProvider({ children }) {
+  const [user, setUser] = useState(null);
+
+  return (
+    <UserContext.Provider value={{ user, setUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+
+function UserProfile() {
+  const { user } = useContext(UserContext);
+
+  return (
+    <div>
+      {user ? <p>Welcome, {user.name}</p> : <p>Please log in</p>}
+    </div>
+  );
+}
+
+4. useReducer - Complex Form Handling in Video Upload
+
+Example: Design a video upload form with various stages (e.g., title, description, tags, privacy settings) similar to YouTube’s upload process.
+
+    What it Does: useReducer manages complex state transitions and can handle multiple steps or actions, ideal for forms or workflows.
+    Implementation:
+        Use useReducer to handle form states, such as "uploading," "successful," or "error."
+        Dispatch actions to move between form stages or to handle success/failure cases.
+
+Code:
+
+javascript
+
+import React, { useReducer } from 'react';
+
+const initialState = { step: 1, videoData: {} };
+
+function formReducer(state, action) {
+  switch (action.type) {
+    case 'NEXT_STEP':
+      return { ...state, step: state.step + 1 };
+    case 'PREV_STEP':
+      return { ...state, step: state.step - 1 };
+    case 'SUBMIT_FORM':
+      return { ...state, status: 'submitted', videoData: action.payload };
+    default:
+      return state;
+  }
+}
+
+function VideoUploadForm() {
+  const [state, dispatch] = useReducer(formReducer, initialState);
+
+  return (
+    <div>
+      {state.step === 1 && <p>Step 1: Enter Video Details</p>}
+      <button onClick={() => dispatch({ type: 'NEXT_STEP' })}>Next</button>
+    </div>
+  );
+}
+
+5. useRef - Video Player Controls
+
+Example: Control the playback speed and volume of a video player. This is similar to YouTube’s use of player controls, where users can play/pause or skip videos.
+
+    What it Does: useRef allows access to the video DOM element without triggering re-renders.
+    Implementation:
+        Create a video player component with controls for play/pause, and volume adjustments.
+        Use useRef to reference the video element and control playback speed and volume directly.
+
+Code:
+
+javascript
+
+import React, { useRef } from 'react';
+
+function VideoPlayer() {
+  const videoRef = useRef(null);
+
+  const handlePlayPause = () => {
+    if (videoRef.current.paused) {
+      videoRef.current.play();
+    } else {
+      videoRef.current.pause();
+    }
+  };
+
+  return (
+    <div>
+      <video ref={videoRef} src="video.mp4" width="600" />
+      <button onClick={handlePlayPause}>Play/Pause</button>
+    </div>
+  );
+}
+
+6. Custom Hooks - Optimized Fetching for Related Videos
+
+Example: Build a custom hook to fetch related videos based on a category, similar to YouTube’s related video suggestions.
+
+    What it Does: Custom hooks allow for logic reuse, like API calls, which helps optimize and modularize the app.
+    Implementation:
+        Create a custom hook, useFetchRelatedVideos, to fetch and cache video data.
+        Use this hook in different components that need to display related videos.
+
+Code:
+
+javascript
+
+import { useState, useEffect } from 'react';
+
+function useFetchRelatedVideos(category) {
+  const [videos, setVideos] = useState([]);
+
+  useEffect(() => {
+    async function fetchVideos() {
+      const response = await fetch(`/api/videos?category=${category}`);
+      const data = await response.json();
+      setVideos(data);
+    }
+    fetchVideos();
+  }, [category]);
+
+  return videos;
+}
+
+function RelatedVideos({ category }) {
+  const videos = useFetchRelatedVideos(category);
+
+  return (
+    <ul>
+      {videos.map(video => (
+        <li key={video.id}>{video.title}</li>
+      ))}
+    </ul>
+  );
+}
+
+ What are React Hooks?
+
+A: React Hooks is a feature introduced in React 16.8 to allow functional components to manage state and side effects without the need for class components. They provide a more concise and easier-to-understand way to work with component state and lifecycle methods.
+
+Several built-in hooks serve different purposes in a React application. Here are some of the most commonly used ones:
+
+1 useState - This hook allows us to add a state to your functional components. We can use it to declare and manage component-specific state variables.
+
+import React, { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}
+
+2 useEffect - This hook enables you to perform side effects in your components, such as data fetching, subscriptions, or manually changing the DOM. It's the functional equivalent of the componentDidMount, componentDidUpdate, and componentWillUnmount lifecycle methods in class components.
+
+import React, { useEffect, useState } from 'react';
+
+function DataFetching() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    // Fetch data and update the state
+    fetch('https://api.example.com/data')
+      .then(response => response.json())
+      .then(data => setData(data));
+  }, []);
+
+  return (
+    <ul>
+      {data.map(item => (
+        <li key={item.id}>{item.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+3 useContext - This hook allows us to access the context in our component tree. It's used to consume context values provided by a Context.Provider.
+
+import React, { useContext } from 'react';
+import MyContext from './MyContext';
+
+function MyComponent() {
+  const value = useContext(MyContext);
+
+  return <div>Context Value: {value}</div>;
+}
+
+4 useReducer - This hook is an alternative to useState for managing more complex state. It's often used when we need to manage state transitions in a predictable way, such as when building forms.
+
+import React, { useReducer } from 'react';
+
+const initialState = { count: 0 };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 };
+    case 'decrement':
+      return { count: state.count - 1 };
+    default:
+      return state;
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>Increment</button>
+      <button onClick={() => dispatch({ type: 'decrement' })}>Decrement</button>
+    </div>
+  );
+}
+
+These are just a few of the commonly used React Hooks. Hooks make it easier to reuse logic across components, keep components more focused, and simplify the code structure of functional components in React applications.
+
+5 useRef - It is a React Hook that provides a way to create and access mutable references to a DOM element or a value that persists across renders in a functional component. It's particularly useful for accessing and interacting with DOM elements directly or for storing values that you don't want to trigger a re-render when they change.
+
+Here are some common use cases for useRef:
+
+Accessing DOM elements - We can use useRef to get a reference to a DOM element and then manipulate it directly. For example, we can focus on an input field or measure the size of an element.
+
+import React, { useRef, useEffect } from 'react';
+
+function MyComponent() {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
+
+  return <input ref={inputRef} />;
+}
+
+Why do we use useState Hook?
+
+A: The useState Hook is an essential part of React because it allows functional components to manage and update their local state. State management is a fundamental concept in React, as it enables components to store and update data that affects their behavior and appearance.
+
+Here are some key reasons why the useState Hook is used:
+
+Local Component State - useState allows functional components to maintain their own local state. This state is isolated to the component and doesn't affect or interfere with the state of other components. This is crucial for building self-contained and reusable components.
+
+Reactive Updates - When we use useState, React automatically handles re-rendering the component when the state changes. This means that when we call setState (the function returned by useState), React efficiently updates the component's user interface to reflect the new state. This reactivity is a core feature of React and simplifies UI development.
+
+Functional Components - Before the introduction of Hooks in React, state management was primarily achieved in class components using the this.state and this.setState mechanisms. With Hooks, functional components can now have their own state, making them more powerful and easier to work with. This reduces the need for class components in many cases.
+
+Declarative Programming - Using useState promotes a declarative style of programming. Instead of directly manipulating the DOM or managing state changes imperatively, we declare how our UI should look based on the current state. React takes care of updating the DOM to match the desired state.
+
+Easy to Understand - useState provides a simple and intuitive way to add and update state in functional components. We can see the current state and its updates in one place, making it easier to understand and maintain our code.
+
+Here's a basic example of how to use the useState Hook to manage state in a functional component:
+
+import React, { useState } from 'react';
+
+function Counter() {
+  // Declare a state variable 'count' with an initial value of 0.
+  const [count, setCount] = useState(0);
+
+  const increment = () => {
+    // Update the 'count' state by calling 'setCount'.
+    setCount(count + 1);
+  };
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>Increment</button>
+    </div>
+  );
+}
+
+In this example, useState is used to create and manage the 'count' state variable. When the button is clicked, it triggers a state update, and React re-renders the component to reflect the new state. This is the core mechanism for creating interactive and dynamic user interfaces in React.
